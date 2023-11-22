@@ -2,7 +2,7 @@
 import { SimpleGrid } from '@chakra-ui/react';
 import ProductCard from '../productcard';
 
-const dummyProducts = [
+export var dummyProducts = [
   { id: 1, name: 'Product 1', image: 'https://placekitten.com/300/200', price: 19.99 },
   { id: 2, name: 'Product 2', image: 'https://placekitten.com/300/200', price: 29.99 },
   { id: 3, name: 'Product 3', image: 'https://placekitten.com/300/200', price: 39.99 },

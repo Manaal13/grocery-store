@@ -59,7 +59,7 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   return (
     <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p={4} textAlign="center">
-      <Image src={product.image} alt={product.name} maxH="200px" cursor="pointer" onClick={handleOpenModal} />
+      <Image src={product.image} alt={product.name} maxH="200px" maxW="200px" pxcursor="pointer" onClick={handleOpenModal} />
       <Heading mt={2} size="md">
         {product.name}
       </Heading>

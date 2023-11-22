@@ -1,4 +1,5 @@
-import {Link,Icon,
+import {
+  Icon,
   Box,
   Flex,
   Spacer,
@@ -12,7 +13,7 @@ import {Link,Icon,
 import { SearchIcon } from "@chakra-ui/icons";
 import { FaWallet, FaShoppingCart, FaSignOutAlt } from "react-icons/fa";
 import { FaHome } from "react-icons/fa";
-
+import Link from "next/link";
 // import { useCart } from '../context/CartContext'; // Import your cart context hook
 
 const NavBar = () => {
@@ -23,8 +24,14 @@ const NavBar = () => {
       <Flex align="center">
         {/* Left buttons */}
         <Link href="/">
-          <Icon as={FaHome} boxSize={6} color="white" colorScheme="whiteAlpha"     mt={1} mr={3}/>
-   
+          <Icon
+            as={FaHome}
+            boxSize={6}
+            color="white"
+            colorScheme="whiteAlpha"
+            mt={1}
+            mr={3}
+          />
         </Link>
         <Button colorScheme="whiteAlpha" mr={2}>
           All Products
@@ -33,7 +40,9 @@ const NavBar = () => {
           Categories
         </Button>
         <Button colorScheme="whiteAlpha">
-          <a href="/complaint-form">Contact Us</a>
+          <Link href="/complaint-form">
+            Contact Us
+          </Link>
         </Button>
 
         {/* Center search bar */}
