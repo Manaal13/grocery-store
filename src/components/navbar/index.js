@@ -34,10 +34,13 @@ const NavBar = () => {
           />
         </Link>
         <Button colorScheme="whiteAlpha" mr={2}>
+        <Link href="/products/all">
           All Products
+          </Link>
         </Button>
         <Button colorScheme="whiteAlpha" mr={2}>
-          Categories
+        <Link href="/products/categories">
+          Categories</Link>
         </Button>
         <Button colorScheme="whiteAlpha">
           <Link href="/complaint-form">

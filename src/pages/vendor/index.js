@@ -1,23 +1,24 @@
 // pages/ProductManagementPage.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
-  Box,
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
-  Select,
-  Textarea,
-  SimpleGrid,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
-} from "@chakra-ui/react";
+    Box,
+    Button,
+    FormControl,
+    FormLabel,
+    Input,
+    Select,
+    Textarea,
+    SimpleGrid,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalCloseButton,
+    ModalBody,
+    ModalFooter,
+    useDisclosure,
+  } from "@chakra-ui/react";
 
 const ProductManagementPage = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -27,22 +28,23 @@ const ProductManagementPage = () => {
     category: "",
     description: "",
     quantity: "",
-    imageUrl: "",
+    image: "",
   });
-  const [products, setProducts] = useState([
-    // Existing products go here
-    {
-      id: 1,
-      name: "Product 1",
-      price: "19.99",
-      category: "Electronics",
-      quantity: "10",
-      imageUrl: "https://placekitten.com/300/200",
-    },
-    // Add more existing products as needed
-  ]);
-
+  const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/api/products");
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -59,18 +61,18 @@ const ProductManagementPage = () => {
     onOpen();
   };
 
-  const handleAddProduct = () => {
+  const handleAddProduct = async () => {
     // Validation
     if (
-      !newProduct.name ||
+      !newProduct.product_name ||
       !newProduct.price ||
       !newProduct.category ||
       !newProduct.quantity ||
-      !newProduct.imageUrl
+      !newProduct.image
     ) {
       // Handle validation error (e.g., show a toast message)
       console.error("All fields are required");
-      window.alert("Please fill all fields")
+      window.alert("Please fill all fields");
       return;
     }
 
@@ -83,31 +85,26 @@ const ProductManagementPage = () => {
       return;
     }
 
-    if (editingProduct) {
-      // Editing existing product
-      const updatedProducts = products.map((product) =>
-        product.id === editingProduct.id ? { ...product, ...newProduct } : product
-      );
-      setProducts(updatedProducts);
-      setEditingProduct(null);
-    } else {
-      // Adding new product
-      setProducts((prevProducts) => [
-        ...prevProducts,
-        { ...newProduct, id: Date.now() },
-      ]);
-    }
+    try {
+      if (editingProduct) {
+        // Editing existing product
+        await axios.put(
+          `http://localhost:8080/api/products/${editingProduct.id}`,
+          newProduct
+        );
+      } else {
+        // Adding new product
+        await axios.post("http://localhost:8080/api/products", newProduct);
+      }
 
-    // Reset form state
-    setNewProduct({
-      name: "",
-      price: "",
-      category: "",
-      description: "",
-      quantity: "",
-      imageUrl: "",
-    });
-    onClose();
+      // Refetch the updated product list
+      const response = await axios.get("http://localhost:8080/api/products");
+      setProducts(response.data);
+      setEditingProduct(null);
+      onClose();
+    } catch (error) {
+      console.error("Error adding/editing product:", error);
+    }
   };
 
   const handleClearProduct = () => {
@@ -117,10 +114,14 @@ const ProductManagementPage = () => {
       category: "",
       description: "",
       quantity: "",
-      imageUrl: "",
+      image: "",
     });
     setEditingProduct(null);
   };
+
+
+
+
 
   return (
     <Box p={4} bg="green.200">
@@ -150,7 +151,7 @@ const ProductManagementPage = () => {
               <Input
                 type="text"
                 name="name"
-                value={newProduct.name}
+                value={newProduct.product_name}
                 onChange={handleInputChange}
               />
             </FormControl>
@@ -197,8 +198,8 @@ const ProductManagementPage = () => {
               <FormLabel>Image URL</FormLabel>
               <Input
                 type="text"
-                name="imageUrl"
-                value={newProduct.imageUrl}
+                name="image"
+                value={newProduct.image}
                 onChange={handleInputChange}
               />
             </FormControl>
@@ -223,9 +224,9 @@ const ProductManagementPage = () => {
             onClick={() => handleEditProduct(product.id)}
             cursor="pointer"
           >
-            <p>{product.name}</p>
+            <p>{product.product_name}</p>
             <p>{product.price}</p>
-            <p>{product.category}</p>
+            <p>{product.category.category_name}</p>
             <p>{product.quantity}</p>
           </Box>
         ))}

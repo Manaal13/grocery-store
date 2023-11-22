@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SimpleGrid } from '@chakra-ui/react';
-import ProductCard from '../productcard';
+import ProductCard from '../../components/productcard';
 import axios from 'axios';
 
 const ProductList = () => {
@@ -9,7 +9,7 @@ const ProductList = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/products/random');
+        const response = await axios.get('http://localhost:8080/api/products');
         setProducts(response.data);
         console.log(response.data);
       } catch (error) {
@@ -21,7 +21,7 @@ const ProductList = () => {
   }, []);
 
   return (
-    <SimpleGrid columns={5} spacing={4}>
+    <SimpleGrid columns={3} spacing={4}>
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}

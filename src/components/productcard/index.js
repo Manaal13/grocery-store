@@ -18,7 +18,7 @@ import {
   Input,
   Flex,
 } from '@chakra-ui/react';
-
+import { Center } from '@chakra-ui/react';
 const ProductCard = ({ product, onAddToCart }) => {
   const { addToCart } = useCart();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,12 +59,12 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   return (
     <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p={4} textAlign="center">
-      <Image src={product.image} alt={product.name} maxH="200px" maxW="200px" pxcursor="pointer" onClick={handleOpenModal} />
+      <Center><Image src={product.image} alt={product.productName} minH="200px" maxH="200px" maxW="200px" pxcursor="pointer" onClick={handleOpenModal} /></Center>
       <Heading mt={2} size="md">
-        {product.name}
+        {product.productName}
       </Heading>
-      <Text mt={2} color="gray.500">
-        ${product.price.toFixed(2)}
+      <Text mt={2} color="gray.500" fontWeight={"bold"} fontSize={"25px"}>
+      ₹{product.price.toFixed(2)}
       </Text>
       <Button mt={2} colorScheme="blue" onClick={handleAddToCart}>
         Add to Cart
@@ -74,10 +74,10 @@ const ProductCard = ({ product, onAddToCart }) => {
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} size="xl">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>{product.name}</ModalHeader>
+          <ModalHeader>{product.productName}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Image src={product.image} alt={product.name} maxH="400px" objectFit="cover" />
+            <Image src={product.image} alt={product.productName} maxH="400px" objectFit="cover" />
 
             <Heading mt={4} size="md">
               Description:
@@ -87,7 +87,7 @@ const ProductCard = ({ product, onAddToCart }) => {
             <Heading mt={4} size="md">
               Category:
             </Heading>
-            <Text>{product.category || 'No category available.'}</Text>
+            <Text>{product.category.categoryName || 'No category available.'}</Text>
             <Heading mt={4} size="md">
               Quantity:
             </Heading>
