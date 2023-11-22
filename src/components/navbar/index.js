@@ -14,10 +14,17 @@ import { SearchIcon } from "@chakra-ui/icons";
 import { FaWallet, FaShoppingCart, FaSignOutAlt } from "react-icons/fa";
 import { FaHome } from "react-icons/fa";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 // import { useCart } from '../context/CartContext'; // Import your cart context hook
 
 const NavBar = () => {
-  // const { cartItems } = useCart();
+ 
+  const [cart, setCart] = useState([]);
+  useEffect(() => {
+    // Retrieve cart data from local storage
+    const savedCart = JSON.parse(localStorage.getItem('cart')) || [];
+    setCart(savedCart);
+  }, []);
 
   return (
     <Box bg="green.900" p={4} position="sticky" top={0} zIndex={999}>
@@ -66,12 +73,14 @@ const NavBar = () => {
           colorScheme="whiteAlpha"
           mr={2}
         />
-        <IconButton
+        <Link href={"cart-page"}><IconButton
           aria-label="Cart"
-          icon={<Badge colorScheme="red">{5}</Badge>} //  cartItems.length
+         icon={<FaShoppingCart/>}
           colorScheme="whiteAlpha"
+          
           mr={2}
         />
+        </Link>
         <IconButton
           aria-label="Logout"
           icon={<FaSignOutAlt />}

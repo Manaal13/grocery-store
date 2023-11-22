@@ -23,21 +23,28 @@ const ComplaintForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+  
     // Simple validation example (you can add more complex validation logic)
     if (!formData.name || !formData.phoneNumber || !formData.email || !formData.concern) {
       setError('All fields are required');
       return;
     }
-
+  
+    // Save form data in local storage
+    const existingData = JSON.parse(localStorage.getItem('complaints')) || [];
+    const newData = {
+      id: new Date().getTime(), // You can use a more sophisticated ID generation method if needed
+      ...formData,
+    };
+    const updatedData = [...existingData, newData];
+    localStorage.setItem('complaints', JSON.stringify(updatedData));
+  
     // Add your logic to handle form submission (e.g., API request)
     console.log('Form submitted:', formData);
-
+  
     window.alert('Form submitted successfully!');
     window.location.href = '/';
-
-    
-
+  
     // Reset the form after successful submission
     setFormData({
       name: '',
@@ -45,9 +52,7 @@ const ComplaintForm = () => {
       email: '',
       concern: '',
     });
-
-    // Display success message
-    // setSuccessMessage('Thank you for your submission!');
+  
     // Clear any existing error
     setError(null);
   };

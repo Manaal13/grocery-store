@@ -1,6 +1,5 @@
 // components/ProductCard.js
 import { useState } from 'react';
-import { useCart } from '@/context/cartcontext';
 import {
   Box,
   Image,
@@ -19,21 +18,45 @@ import {
   Flex,
 } from '@chakra-ui/react';
 import { Center } from '@chakra-ui/react';
-const ProductCard = ({ product, onAddToCart }) => {
-  const { addToCart } = useCart();
+
+const ProductCard = ({ product }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const toast = useToast();
 
   const handleAddToCart = () => {
-    addToCart(product, quantity);
-    console.log(product,quantity);
+    // Retrieve existing cart data from local storage
+    const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    // Check if the product is already in the cart
+    const existingItemIndex = existingCart.findIndex((item) => item.id === product.id);
+
+    if (existingItemIndex !== -1) {
+      // If the product is already in the cart, update the quantity
+      existingCart[existingItemIndex].quantity += quantity;
+    } else {
+      // If the product is not in the cart, add it
+      const newItem = {
+        id: product.id,
+        productName: product.productName,
+        price: product.price,
+        quantity: quantity,
+        image: product.image
+      };
+
+      existingCart.push(newItem);
+    }
+
+    // Save the updated cart data to local storage
+    localStorage.setItem('cart', JSON.stringify(existingCart));
+
     toast({
       title: 'Item added to cart',
       status: 'success',
       duration: 2000,
       isClosable: true,
     });
+
     handleCloseModal();
   };
 
@@ -59,12 +82,12 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   return (
     <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p={4} textAlign="center">
-      <Center><Image src={product.image} alt={product.productName} minH="200px" maxH="200px" maxW="200px" pxcursor="pointer" onClick={handleOpenModal} /></Center>
+      <Center><Image src={product.image} alt={product.productName} minH="200px" maxH="200px" maxW="200px" cursor="pointer" onClick={handleOpenModal} /></Center>
       <Heading mt={2} size="md">
         {product.productName}
       </Heading>
       <Text mt={2} color="gray.500" fontWeight={"bold"} fontSize={"25px"}>
-      ₹{product.price.toFixed(2)}
+        ₹{product.price.toFixed(2)}
       </Text>
       <Button mt={2} colorScheme="blue" onClick={handleAddToCart}>
         Add to Cart

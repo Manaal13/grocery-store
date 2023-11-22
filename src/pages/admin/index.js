@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ChakraProvider,
   Box,
@@ -17,69 +17,51 @@ import {
   Input,
   FormControl,
   FormLabel,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  IconButton,
 } from "@chakra-ui/react";
+import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
+import axios from "axios";
 
 const AdminDashboard = () => {
-  // Product List State
-  const [newCategoryName,setNewCategoryName] = useState("")
-  const [editedCategoryName,setEditedCategoryName] = useState("")
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Product 1",
-      description: "This is the first product description.",
-      details: "Details about Product 1.",
-    },
-    {
-      id: 2,
-      name: "Product 2",
-      description: "This is the second product description.",
-      details: "Details about Product 2.",
-    },
-    // Add more products as needed
-  ]);
-
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [editedCategoryName, setEditedCategoryName] = useState("");
+  const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
-  // Review List State
-  const [reviews, setReviews] = useState([
-    {
-      id: 1,
-      username: "User1",
-      comment: "This product is amazing!",
-      details: "More details about the review from User1.",
-    },
-    {
-      id: 2,
-      username: "User2",
-      comment: "Not satisfied with this product.",
-      details: "Detailed complaints from User2.",
-    },
-    // Add more reviews as needed
-  ]);
-
+  const [reviews, setReviews] = useState([]);
   const [selectedReview, setSelectedReview] = useState(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-
-  // Category List State
-  const [categories, setCategories] = useState([
-    { id: 1, name: "Electronics" },
-    { id: 2, name: "Clothing" },
-    // Add more categories as needed
-  ]);
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isEditCategoryModalOpen, setIsEditCategoryModalOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/api/categories");
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleApprove = (productId) => {
-    // Implement approval logic here
     console.log(`Product ${productId} approved`);
   };
 
   const handleReject = (productId) => {
-    // Implement rejection logic here
     console.log(`Product ${productId} rejected`);
   };
 
@@ -93,31 +75,43 @@ const AdminDashboard = () => {
     setIsReviewModalOpen(true);
   };
 
-  const handleAddCategory = () => {
-    const newCategory = { id: Date.now(), name: newCategoryName };
-    setCategories((prevCategories) => [...prevCategories, newCategory]);
-    setIsAddCategoryModalOpen(false);
-    setNewCategoryName("");
+  const handleAddCategory = async () => {
+    try {
+      const response = await axios.post("http://localhost:8080/api/categories", {
+        categoryName: newCategoryName,
+      });
+      setCategories((prevCategories) => [...prevCategories, response.data]);
+      setIsAddCategoryModalOpen(false);
+      setNewCategoryName("");
+    } catch (error) {
+      console.error("Error adding category:", error);
+    }
   };
 
-  const handleEditCategory = () => {
-    setCategories((prevCategories) =>
-      prevCategories.map((category) =>
-        category.id === selectedCategory.id
-          ? { ...category, name: editedCategoryName }
-          : category
-      )
-    );
-    setIsEditCategoryModalOpen(false);
-    setEditedCategoryName("");
-    setSelectedCategory(null);
+  const handleEditCategory = async () => {
+    try {
+      await axios.put(
+        `http://localhost:8080/api/categories/${selectedCategory.id}`,
+        {
+          id: selectedCategory.id,
+          categoryName: editedCategoryName,
+        }
+      );
+      setCategories((prevCategories) =>
+        prevCategories.map((category) =>
+          category.id === selectedCategory.id
+            ? { ...category, categoryName: editedCategoryName }
+            : category
+        )
+      );
+      setIsEditCategoryModalOpen(false);
+      setEditedCategoryName("");
+      setSelectedCategory(null);
+    } catch (error) {
+      console.error("Error editing category:", error);
+    }
   };
 
-  const handleDeleteCategory = (categoryId) => {
-    setCategories((prevCategories) =>
-      prevCategories.filter((category) => category.id !== categoryId)
-    );
-  };
 
   const openAddCategoryModal = () => {
     setIsAddCategoryModalOpen(true);
@@ -136,7 +130,6 @@ const AdminDashboard = () => {
     setSelectedCategory(null);
     setIsEditCategoryModalOpen(false);
   };
-
   return (
     <ChakraProvider>
       <Box p={4}>
@@ -201,36 +194,32 @@ const AdminDashboard = () => {
             ))}
           </VStack>
 
-          <VStack align="flex-start" spacing={4}>
+          <VStack align="flex" spacing={2}>
             <Heading as="h2" size="lg" mb={4}>
               Categories
             </Heading>
-            {categories.map((category) => (
-              <Box
-                key={category.id}
-                bgColor="green.200"
-                p={4}
-                borderRadius="md"
-                width="300px"
-              >
-                <Text fontSize="lg">{category.name}</Text>
-                <Button
-                  colorScheme="blue"
-                  onClick={() => openEditCategoryModal(category)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  colorScheme="red"
-                  onClick={() => handleDeleteCategory(category.id)}
-                >
-                  Delete
-                </Button>
-              </Box>
-            ))}
             <Button colorScheme="green" onClick={openAddCategoryModal} mt={4}>
               Add Category
             </Button>
+            {categories.map((category) => (
+               <Box
+               key={category.id}
+               bgColor="green.200"
+               p={4}
+               borderRadius="md"
+               width="300px"
+               style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+             >
+               <Text fontSize="lg">{category.categoryName}</Text>
+               <Button
+                 colorScheme="blue"
+                 onClick={() => openEditCategoryModal(category)}
+               >
+                 Edit
+               </Button>
+             </Box>
+            ))}
+           
           </VStack>
         </Flex>
 

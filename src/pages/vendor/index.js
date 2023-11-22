@@ -2,23 +2,24 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
-    Box,
-    Button,
-    FormControl,
-    FormLabel,
-    Input,
-    Select,
-    Textarea,
-    SimpleGrid,
-    Modal,
-    ModalOverlay,
-    ModalContent,
-    ModalHeader,
-    ModalCloseButton,
-    ModalBody,
-    ModalFooter,
-    useDisclosure,
-  } from "@chakra-ui/react";
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  Input,
+  Select,
+  Textarea,
+  SimpleGrid,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@chakra-ui/react";
+import { Image } from "@chakra-ui/react";
 
 const ProductManagementPage = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -32,7 +33,20 @@ const ProductManagementPage = () => {
   });
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
-
+  const [categories, setCategories] = useState([]);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:8080/api/categories"
+        );
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -63,11 +77,11 @@ const ProductManagementPage = () => {
 
   const handleAddProduct = async () => {
     // Validation
+    console.log(newProduct);
     if (
-      !newProduct.product_name ||
+      !newProduct.productName ||
       !newProduct.price ||
       !newProduct.category ||
-      !newProduct.quantity ||
       !newProduct.image
     ) {
       // Handle validation error (e.g., show a toast message)
@@ -76,10 +90,7 @@ const ProductManagementPage = () => {
       return;
     }
 
-    if (
-      isNaN(parseFloat(newProduct.price)) ||
-      isNaN(parseInt(newProduct.quantity))
-    ) {
+    if (isNaN(parseFloat(newProduct.price))) {
       // Handle validation error for price and quantity
       console.error("Price and quantity must be valid numbers");
       return;
@@ -119,9 +130,23 @@ const ProductManagementPage = () => {
     setEditingProduct(null);
   };
 
+  const handleCloseModal = () => {
+    setNewProduct({
+      name: "",
+      price: "",
+      category: "",
+      description: "",
+      quantity: "",
+      image: "",
+    });
+    onClose();
+  };
 
-
-
+  const handleSelectChange = (e) => {
+    const index = e.target.value;
+    const category = categories[index];
+    setNewProduct({ ...newProduct, category: category });
+  };
 
   return (
     <Box p={4} bg="green.200">
@@ -137,7 +162,7 @@ const ProductManagementPage = () => {
       </Button>
 
       {/* Add Product Form Modal */}
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={handleCloseModal}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
@@ -150,8 +175,8 @@ const ProductManagementPage = () => {
               <FormLabel>Name</FormLabel>
               <Input
                 type="text"
-                name="name"
-                value={newProduct.product_name}
+                name="productName"
+                value={newProduct.productName}
                 onChange={handleInputChange}
               />
             </FormControl>
@@ -168,13 +193,21 @@ const ProductManagementPage = () => {
               <FormLabel>Category</FormLabel>
               <Select
                 name="category"
-                value={newProduct.category}
-                onChange={handleInputChange}
+                value={newProduct.category.category_name}
+                onChange={handleSelectChange}
               >
                 {/* Add your category options here */}
-                <option value="electronics">Electronics</option>
-                <option value="clothing">Clothing</option>
-                <option value="home">Home</option>
+                {categories.map((category, index) => {
+                  return (
+                    <option
+                      value={index}
+                      key={category.id}
+                      style={{ color: "black" }}
+                    >
+                      {category.categoryName}
+                    </option>
+                  );
+                })}
               </Select>
             </FormControl>
             <FormControl mb={4}>
@@ -185,15 +218,7 @@ const ProductManagementPage = () => {
                 onChange={handleInputChange}
               />
             </FormControl>
-            <FormControl mb={4}>
-              <FormLabel>Quantity</FormLabel>
-              <Input
-                type="number"
-                name="quantity"
-                value={newProduct.quantity}
-                onChange={handleInputChange}
-              />
-            </FormControl>
+
             <FormControl mb={4}>
               <FormLabel>Image URL</FormLabel>
               <Input
@@ -224,10 +249,15 @@ const ProductManagementPage = () => {
             onClick={() => handleEditProduct(product.id)}
             cursor="pointer"
           >
-            <p>{product.product_name}</p>
-            <p>{product.price}</p>
+            <p>{product.productName}</p>
+            <p>₹{product.price}</p>
             <p>{product.category.category_name}</p>
-            <p>{product.quantity}</p>
+            <Image
+              src={product.image}
+              alt={product.productName}
+              maxH="100px"
+              objectFit="cover"
+            />
           </Box>
         ))}
       </SimpleGrid>
