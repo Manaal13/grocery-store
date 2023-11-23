@@ -30,6 +30,7 @@ const ProductManagementPage = () => {
     description: "",
     quantity: "",
     image: "",
+    status: "awaiting",
   });
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -51,7 +52,11 @@ const ProductManagementPage = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get("http://localhost:8080/api/products");
-        setProducts(response.data);
+        // Filter products with status 'approved'
+        const approvedProducts = response.data.filter(
+          (product) => product.status === "approved"
+        );
+        setProducts(approvedProducts);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
@@ -76,41 +81,27 @@ const ProductManagementPage = () => {
   };
 
   const handleAddProduct = async () => {
-    // Validation
-    console.log(newProduct);
-    if (
-      !newProduct.productName ||
-      !newProduct.price ||
-      !newProduct.category ||
-      !newProduct.image
-    ) {
-      // Handle validation error (e.g., show a toast message)
-      console.error("All fields are required");
-      window.alert("Please fill all fields");
-      return;
-    }
-
-    if (isNaN(parseFloat(newProduct.price))) {
-      // Handle validation error for price and quantity
-      console.error("Price and quantity must be valid numbers");
-      return;
-    }
+    // Validation code...
 
     try {
+      const productData = { ...newProduct, status: "awaiting" }; // Include the status field
       if (editingProduct) {
         // Editing existing product
         await axios.put(
           `http://localhost:8080/api/products/${editingProduct.id}`,
-          newProduct
+          productData
         );
       } else {
         // Adding new product
-        await axios.post("http://localhost:8080/api/products", newProduct);
+        await axios.post("http://localhost:8080/api/products", productData);
       }
 
       // Refetch the updated product list
-      const response = await axios.get("http://localhost:8080/api/products");
-      setProducts(response.data);
+      const response = await axios.get("http://localhost:8080/api/products"); 
+      const approvedProducts = response.data.filter(
+        (product) => product.status === "approved"
+      );
+      setProducts(approvedProducts);
       setEditingProduct(null);
       onClose();
     } catch (error) {

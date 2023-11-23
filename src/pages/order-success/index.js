@@ -1,20 +1,38 @@
-// pages/thanks.js
-import { Box, Heading, Text, Button, Link } from '@chakra-ui/react';
+import { useState, useEffect } from 'react';
+import { Box, Heading, Text, Link, Button } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 
-const ThanksPage = () => {
+const OrderSuccessPage = () => {
   const router = useRouter();
-  const orderNumber = '123456'; // Replace with the actual order number
+
+  
+  const handleRedirect = () => {
+    router.push('/');
+  };
 
   return (
-    <Box p={4} textAlign="center">
-      <Heading mb={4}>Thanks for Your Order!</Heading>
-      <Text mb={4}>Your order number is: {orderNumber}</Text>
-      <Button colorScheme="green" onClick={() => router.push('/')}>
+    <Box textAlign="center" p={8}>
+      <Heading mb={4} fontSize="2xl">
+        🎉 Thank you for your order! 🎉
+      </Heading>
+
+      <Text mb={4}>
+        Your order has been successfully placed. Here are the details:
+      </Text>
+
+      <Text mb={4}>
+        Order Number: #123456
+      </Text>
+
+      <Button colorScheme="teal" onClick={handleRedirect}>
         Continue Shopping
       </Button>
+
+      <Text mt={4}>
+        If you have any questions, please <Link color="teal.500" href="/contact">contact us</Link>.
+      </Text>
     </Box>
   );
 };
 
-export default ThanksPage;
+export default OrderSuccessPage;

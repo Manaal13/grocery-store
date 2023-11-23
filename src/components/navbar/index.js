@@ -55,15 +55,7 @@ const NavBar = () => {
           </Link>
         </Button>
 
-        {/* Center search bar */}
-        <Spacer />
-        <InputGroup w="50%">
-          <InputLeftElement
-            pointerEvents="none"
-            children={<SearchIcon color="gray.300" />}
-          />
-          <Input type="text" placeholder="Search" />
-        </InputGroup>
+    
 
         {/* Right icons */}
         <Spacer />
@@ -73,7 +65,7 @@ const NavBar = () => {
           colorScheme="whiteAlpha"
           mr={2}
         />
-        <Link href={"cart-page"}><IconButton
+        <Link href={"/cart-page"}><IconButton
           aria-label="Cart"
          icon={<FaShoppingCart/>}
           colorScheme="whiteAlpha"

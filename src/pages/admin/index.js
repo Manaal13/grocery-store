@@ -17,13 +17,7 @@ import {
   Input,
   FormControl,
   FormLabel,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  IconButton,
+  Image,
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import axios from "axios";
@@ -34,6 +28,7 @@ const AdminDashboard = () => {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [complaints, setComplaints] = useState([]);
 
   const [reviews, setReviews] = useState([]);
   const [selectedReview, setSelectedReview] = useState(null);
@@ -43,11 +38,110 @@ const AdminDashboard = () => {
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isEditCategoryModalOpen, setIsEditCategoryModalOpen] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [awaitingProducts, setAwaitingProducts] = useState([]);
+  const [selectedAwaitingProduct, setSelectedAwaitingProduct] = useState(null);
+  const [isAwaitingProductModalOpen, setIsAwaitingProductModalOpen] =
+    useState(false);
+
+  useEffect(() => {
+    const fetchAwaitingProducts = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:8080/api/products?status=awaiting"
+        );
+        const awaitingProducts = response.data.filter(
+          (product) => product.status === "awaiting"
+        );
+        setAwaitingProducts(awaitingProducts);
+      } catch (error) {
+        console.error("Error fetching awaiting products:", error);
+      }
+    };
+
+    fetchAwaitingProducts();
+  }, []);
+
+  const handleAccept = async () => {
+    try {
+      // Make a PUT request to update the status to approved
+      await axios.put(
+        `http://localhost:8080/api/products/${selectedAwaitingProduct.id}`,
+        { ...selectedAwaitingProduct,
+          status: "approved" }
+      );
+
+      // After approval, fetch the updated list of awaiting products
+      const response = await axios.get(
+        "http://localhost:8080/api/products?status=awaiting"
+      );
+      const awaitingProducts = response.data.filter(
+        (product) => product.status === "awaiting"
+      );
+      setAwaitingProducts(awaitingProducts);
+
+      // Close the modal
+      setIsAwaitingProductModalOpen(false);
+    } catch (error) {
+      console.error("Error accepting product:", error);
+    }
+  };
+
+  const handleReject = async () => {
+    try {console.log(selectedAwaitingProduct.id);
+      // Make a PUT request to update the status to rejected
+      await axios.put(
+        `http://localhost:8080/api/products/${selectedAwaitingProduct.id}`,
+        { ...selectedAwaitingProduct,
+          status: "rejected" }
+      );
+
+      // After rejection, fetch the updated list of awaiting products
+      const response = await axios.get(
+        "http://localhost:8080/api/products?status=awaiting"
+      );
+      const awaitingProducts = response.data.filter(
+        (product) => product.status === "awaiting"
+      );
+      setAwaitingProducts(awaitingProducts);
+
+      // Close the modal
+      setIsAwaitingProductModalOpen(false);
+    } catch (error) {
+      console.error("Error rejecting product:", error);
+    }
+  };
+
+  const handleAwaitingProductClick = (product) => {
+    setSelectedAwaitingProduct(product);
+    setIsAwaitingProductModalOpen(true);
+  };
+
+  useEffect(() => {
+    // Fetch complaints from local storage
+    const storedComplaints =
+      JSON.parse(localStorage.getItem("complaints")) || [];
+    setComplaints(storedComplaints);
+  }, []);
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [isComplaintDetailsModalOpen, setIsComplaintDetailsModalOpen] =
+    useState(false);
+
+  const openComplaintDetailsModal = (complaint) => {
+    setSelectedComplaint(complaint);
+    setIsComplaintDetailsModalOpen(true);
+  };
+
+  const closeComplaintDetailsModal = () => {
+    setSelectedComplaint(null);
+    setIsComplaintDetailsModalOpen(false);
+  };
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/api/categories");
+        const response = await axios.get(
+          "http://localhost:8080/api/categories"
+        );
         setCategories(response.data);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -56,30 +150,14 @@ const AdminDashboard = () => {
 
     fetchCategories();
   }, []);
-
-  const handleApprove = (productId) => {
-    console.log(`Product ${productId} approved`);
-  };
-
-  const handleReject = (productId) => {
-    console.log(`Product ${productId} rejected`);
-  };
-
-  const handleProductClick = (product) => {
-    setSelectedProduct(product);
-    setIsProductModalOpen(true);
-  };
-
-  const handleReviewClick = (review) => {
-    setSelectedReview(review);
-    setIsReviewModalOpen(true);
-  };
-
   const handleAddCategory = async () => {
     try {
-      const response = await axios.post("http://localhost:8080/api/categories", {
-        categoryName: newCategoryName,
-      });
+      const response = await axios.post(
+        "http://localhost:8080/api/categories",
+        {
+          categoryName: newCategoryName,
+        }
+      );
       setCategories((prevCategories) => [...prevCategories, response.data]);
       setIsAddCategoryModalOpen(false);
       setNewCategoryName("");
@@ -112,7 +190,6 @@ const AdminDashboard = () => {
     }
   };
 
-
   const openAddCategoryModal = () => {
     setIsAddCategoryModalOpen(true);
   };
@@ -138,57 +215,56 @@ const AdminDashboard = () => {
             <Heading as="h2" size="lg" mb={4}>
               Products Awaiting Approval
             </Heading>
-            {products.map((product) => (
+            {awaitingProducts.map((product) => (
               <Box
-                key={product.id}
+              key={product.id}
+              bgColor="green.200"
+              p={4}
+              borderRadius="md"
+              width="300px"
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <VStack align="start">
+                <Text fontSize="lg">Product ID: {product.id}</Text>
+                <Text fontSize="lg">Product Name: {product.productName}</Text>
+              </VStack>
+              <Button
+                colorScheme="blue"
+                onClick={() => handleAwaitingProductClick(product)}
+              >
+                Details
+              </Button>
+            </Box>
+            
+            ))}
+          </VStack>
+
+          <VStack align="flex" spacing={2}>
+            <Heading as="h2" size="lg" mb={4}>
+              Complaints by
+            </Heading>
+            {complaints.map((complaint) => (
+              <Box
+                key={complaint.id}
                 bgColor="green.200"
                 p={4}
                 borderRadius="md"
                 width="300px"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
               >
-                <Text fontSize="lg">{product.name}</Text>
-                <Text>{product.description}</Text>
-                <Button
-                  colorScheme="green"
-                  onClick={() => handleApprove(product.id)}
-                >
-                  Approve
-                </Button>
-                <Button
-                  colorScheme="red"
-                  onClick={() => handleReject(product.id)}
-                >
-                  Reject
-                </Button>
+                <Text fontSize="lg">{complaint.name}</Text>
                 <Button
                   colorScheme="blue"
-                  onClick={() => handleProductClick(product)}
+                  onClick={() => openComplaintDetailsModal(complaint)}
                 >
+                  {" "}
                   Details
-                </Button>
-              </Box>
-            ))}
-          </VStack>
-
-          <VStack align="flex-start" spacing={4}>
-            <Heading as="h2" size="lg" mb={4}>
-              User Reviews/Complaints
-            </Heading>
-            {reviews.map((review) => (
-              <Box
-                key={review.id}
-                bgColor="yellow.200"
-                p={4}
-                borderRadius="md"
-                width="300px"
-              >
-                <Text fontSize="lg">{review.username}</Text>
-                <Text>{review.comment}</Text>
-                <Button
-                  colorScheme="blue"
-                  onClick={() => handleReviewClick(review)}
-                >
-                  View Details
                 </Button>
               </Box>
             ))}
@@ -202,44 +278,67 @@ const AdminDashboard = () => {
               Add Category
             </Button>
             {categories.map((category) => (
-               <Box
-               key={category.id}
-               bgColor="green.200"
-               p={4}
-               borderRadius="md"
-               width="300px"
-               style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
-             >
-               <Text fontSize="lg">{category.categoryName}</Text>
-               <Button
-                 colorScheme="blue"
-                 onClick={() => openEditCategoryModal(category)}
-               >
-                 Edit
-               </Button>
-             </Box>
+              <Box
+                key={category.id}
+                bgColor="green.200"
+                p={4}
+                borderRadius="md"
+                width="300px"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text fontSize="lg">{category.categoryName}</Text>
+                <Button
+                  colorScheme="blue"
+                  onClick={() => openEditCategoryModal(category)}
+                >
+                  Edit
+                </Button>
+              </Box>
             ))}
-           
           </VStack>
         </Flex>
 
-        {/* Product Modal */}
+        {/* Awaiting Product Modal */}
         <Modal
-          isOpen={isProductModalOpen}
-          onClose={() => setIsProductModalOpen(false)}
+          isOpen={isAwaitingProductModalOpen}
+          onClose={() => setIsAwaitingProductModalOpen(false)}
         >
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>{selectedProduct && selectedProduct.name}</ModalHeader>
+            <ModalHeader>
+              {selectedAwaitingProduct && selectedAwaitingProduct.productName}
+            </ModalHeader>
             <ModalCloseButton />
             <ModalBody>
-              <Text>{selectedProduct && selectedProduct.details}</Text>
-              {/* Add more details as needed */}
+              <Box>
+                <Image
+                  src={selectedAwaitingProduct && selectedAwaitingProduct.image}
+                />
+                <Text fontSize="xl" fontWeight="bold" mb={2}>
+                  Price: ₹
+                  {selectedAwaitingProduct && selectedAwaitingProduct.price}
+                </Text>
+                <Text fontSize="md" mb={4}>
+                  Description:{" "}
+                  {selectedAwaitingProduct &&
+                    selectedAwaitingProduct.description}
+                </Text>
+              </Box>
             </ModalBody>
             <ModalFooter>
+              <Button colorScheme="green" onClick={handleAccept}>
+                Accept
+              </Button>
+              <Button colorScheme="red" onClick={handleReject}>
+                Reject
+              </Button>
               <Button
                 colorScheme="blue"
-                onClick={() => setIsProductModalOpen(false)}
+                onClick={() => setIsAwaitingProductModalOpen(false)}
               >
                 Close
               </Button>
@@ -249,24 +348,30 @@ const AdminDashboard = () => {
 
         {/* Review Modal */}
         <Modal
-          isOpen={isReviewModalOpen}
-          onClose={() => setIsReviewModalOpen(false)}
+          isOpen={isComplaintDetailsModalOpen}
+          onClose={closeComplaintDetailsModal}
         >
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>
-              {selectedReview && selectedReview.username}'s Review
+              {selectedComplaint && selectedComplaint.name}'s Complaint
             </ModalHeader>
             <ModalCloseButton />
             <ModalBody>
-              <Text>{selectedReview && selectedReview.details}</Text>
-              {/* Add more details as needed */}
+              <Text fontWeight="bold">
+                ID: {selectedComplaint && selectedComplaint.id}
+              </Text>
+              <Text>Email: {selectedComplaint && selectedComplaint.email}</Text>
+              <Text>
+                Phone Number:{" "}
+                {selectedComplaint && selectedComplaint.phoneNumber}
+              </Text>
+              <Box bgColor="gray.100" p={4} borderRadius="md" mt={2}>
+                <Text>{selectedComplaint && selectedComplaint.concern}</Text>
+              </Box>
             </ModalBody>
             <ModalFooter>
-              <Button
-                colorScheme="blue"
-                onClick={() => setIsReviewModalOpen(false)}
-              >
+              <Button colorScheme="blue" onClick={closeComplaintDetailsModal}>
                 Close
               </Button>
             </ModalFooter>
